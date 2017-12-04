@@ -4,7 +4,8 @@
 
 
 Honda3Pin::Honda3Pin(uint8_t k_line_pin, uint8_t odb1_or_odb2) :
-    _dlcSerial(k_line_pin, k_line_pin, false, false)
+    _dlcSerial(k_line_pin, k_line_pin, false, false),
+    _dlcdata{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 {
     _odb1_or_odb2 = odb1_or_odb2;
 }
