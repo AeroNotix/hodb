@@ -27,7 +27,7 @@ void Honda3Pin::Init() {
     delay(300);
 }
 
-CommandData findCommand(Command cmd) {
+CommandData Honda3Pin::findCommand(Command cmd) {
     for (unsigned int i = 0; sizeof(Commands) / sizeof(Commands[0]); i++) {
         if (Commands[i].commandType == cmd) {
             return Commands[i];
