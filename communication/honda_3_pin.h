@@ -4,6 +4,18 @@
 #include <Arduino.h>
 #include <SoftwareSerialWithHalfDuplex.h>
 
+enum Command {
+    RPM,
+    ECT,
+    VSS
+};
+
+struct CommandData {
+    Command commandType;
+    byte address;
+    byte responseSize;
+};
+
 
 class Honda3Pin {
 public:
@@ -11,8 +23,8 @@ public:
     void Init();
     unsigned int readRPM();
 private:
-    int dlcCommand(byte cmd, byte num, byte loc, byte len, byte data[]);
-
+    int dlcCommand(Command cmd, byte data[]);
+    CommandData findCommand(Command cmd);
     SoftwareSerialWithHalfDuplex _dlcSerial;
     byte _dlcdata[20];
     int _odb1_or_odb2;

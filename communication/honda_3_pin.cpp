@@ -2,6 +2,14 @@
 #include <SoftwareSerialWithHalfDuplex.h>
 #include "honda_3_pin.h"
 
+byte COMMAND_BYTE = 0x20;
+byte TYPICAL_COMMAND_LENGTH = 0x5;
+
+CommandData Commands[3] = {
+    {RPM, 0x00, 0x02},
+    {ECT, 0x01, 0x01},
+    {VSS, 0x02, 0x01}
+};
 
 Honda3Pin::Honda3Pin(uint8_t k_line_pin, uint8_t odb1_or_odb2) :
     _dlcSerial(k_line_pin, k_line_pin, false, false),
@@ -19,39 +27,52 @@ void Honda3Pin::Init() {
     delay(300);
 }
 
-int Honda3Pin::dlcCommand(byte cmd, byte num, byte loc, byte len, byte data[]) {
-  // checksum FF - (cmd + num + loc + len - 0x01)
-  byte crc = (0xFF - (cmd + num + loc + len - 0x01));
+CommandData findCommand(Command cmd) {
+    for (unsigned int i = 0; sizeof(Commands) / sizeof(Commands[0]); i++) {
+        if (Commands[i].commandType == cmd) {
+            return Commands[i];
+        }
+    }
+}
+
+int Honda3Pin::dlcCommand(Command cmd, byte data[]) {
 
   unsigned long timeOut = millis() + 250;
-  memset(data, 0, len);
+  // refactor the length arg to be known from data[]
+  memset(data, 0, 20);
 
   _dlcSerial.listen();
+  
 
-  _dlcSerial.write(cmd);  // header/cmd read memory ??
-  _dlcSerial.write(num);  // num of bytes to send
-  _dlcSerial.write(loc);  // address
-  _dlcSerial.write(len);  // num of bytes to read
+  CommandData cd = findCommand(cmd);
+  
+  // checksum FF - (cmd + num + loc + len - 0x01)
+  byte crc = (0xFF - (COMMAND_BYTE + TYPICAL_COMMAND_LENGTH + cd.address + cd.responseSize - 0x01));
+
+  _dlcSerial.write(COMMAND_BYTE);  // header/cmd read memory ??
+  _dlcSerial.write(TYPICAL_COMMAND_LENGTH);  // num of bytes to send, change this when necessary
+  _dlcSerial.write(cd.address);  // address
+  _dlcSerial.write(cd.responseSize);  // num of bytes to read
   _dlcSerial.write(crc);  // checksum
 
   int i = 0;
-  while (i < (len + 3) && millis() < timeOut) {
+  while (i < (TYPICAL_COMMAND_LENGTH + 3) && millis() < timeOut) {
     if (_dlcSerial.available()) {
       data[i] = _dlcSerial.read();
       i++;
     }
   }
-  if (data[0] != 0x00 && data[1] != (len + 3)) {
+  if (data[0] != 0x00 && data[1] != (TYPICAL_COMMAND_LENGTH + 3)) {
     return 0;
   }
-  if (i < (len + 3)) {
+  if (i < (TYPICAL_COMMAND_LENGTH + 3)) {
     return 0;
   }
   return 1;
 }
 
 unsigned int Honda3Pin::readRPM() {
-    if (dlcCommand(0x20, 0x05, 0x00, 0x02, _dlcdata) != -1) {
+    if (dlcCommand(RPM, _dlcdata) != -1) {
 
         if (_odb1_or_odb2 == 1) {
             return (1875000 / (_dlcdata[2] * 256 + _dlcdata[3] + 1)) * 4;
