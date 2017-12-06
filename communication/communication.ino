@@ -16,7 +16,7 @@ void serialPrintRPM(int rpm) {
 }
 
 void loop() {
-  unsigned int i = odb_connection.readRPM();
+  unsigned int i = odb_connection.RPM();
   serialPrintRPM(i);
   // Just a sanity-check to know if we are still running:
   digitalWrite(LED_BUILTIN, HIGH);

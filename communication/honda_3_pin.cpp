@@ -71,8 +71,8 @@ int Honda3Pin::dlcCommand(Command cmd, byte data[]) {
   return 1;
 }
 
-unsigned int Honda3Pin::readRPM() {
-    if (dlcCommand(RPM, _dlcdata)) {
+unsigned int Honda3Pin::RPM() {
+    if (dlcCommand(Command::RPM, _dlcdata)) {
         
         if (_odb1_or_odb2 == 1) {
             return (1875000 / (_dlcdata[2] * 256 + _dlcdata[3] + 1)) * 4;

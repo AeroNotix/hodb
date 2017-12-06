@@ -21,7 +21,7 @@ class Honda3Pin {
 public:
     Honda3Pin(uint8_t k_line_pin, uint8_t odb1_or_odb2);
     void Init();
-    unsigned int readRPM();
+    unsigned int RPM();
 private:
     int dlcCommand(Command cmd, byte data[]);
     CommandData findCommand(Command cmd);
