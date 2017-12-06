@@ -23,7 +23,7 @@ public:
     void Init();
     unsigned int RPM();
 private:
-    int dlcCommand(Command cmd, byte data[]);
+    int dlcCommand(Command cmd);
     CommandData findCommand(Command cmd);
     SoftwareSerialWithHalfDuplex _dlcSerial;
     byte _dlcdata[20];

@@ -39,11 +39,11 @@ byte checksum(CommandData cd) {
     return (0xFF - (COMMAND_BYTE + TYPICAL_COMMAND_LENGTH + cd.address + cd.responseSize - 0x01));
 }
 
-int Honda3Pin::dlcCommand(Command cmd, byte data[]) {
+int Honda3Pin::dlcCommand(Command cmd) {
 
   unsigned long timeOut = millis() + 250;
   // refactor the length arg to be known from data[]
-  memset(data, 0, 20);
+  memset(_dlcdata, 0, 20);
 
   _dlcSerial.listen();
   
@@ -58,11 +58,11 @@ int Honda3Pin::dlcCommand(Command cmd, byte data[]) {
   int i = 0;
   while (i < (TYPICAL_COMMAND_LENGTH + 3) && millis() < timeOut) {
     if (_dlcSerial.available()) {
-      data[i] = _dlcSerial.read();
-      i++;
+        _dlcdata[i] = _dlcSerial.read();
+        i++;
     }
   }
-  if (data[0] != 0x00 && data[1] != (TYPICAL_COMMAND_LENGTH + 3)) {
+  if (_dlcdata[0] != 0x00 && _dlcdata[1] != (TYPICAL_COMMAND_LENGTH + 3)) {
     return 0;
   }
   if (i < (TYPICAL_COMMAND_LENGTH + 3)) {
@@ -72,7 +72,7 @@ int Honda3Pin::dlcCommand(Command cmd, byte data[]) {
 }
 
 unsigned int Honda3Pin::RPM() {
-    if (dlcCommand(Command::RPM, _dlcdata)) {
+    if (dlcCommand(Command::RPM)) {
         
         if (_odb1_or_odb2 == 1) {
             return (1875000 / (_dlcdata[2] * 256 + _dlcdata[3] + 1)) * 4;
@@ -84,4 +84,3 @@ unsigned int Honda3Pin::RPM() {
     }
     return -1;
 }
-
