@@ -21,16 +21,16 @@ Honda3Pin::Honda3Pin(uint8_t k_line_pin, uint8_t odb1_or_odb2) :
 void Honda3Pin::Init() {
     _dlcSerial.begin(9600);
     int initSequence[] = { 0x68, 0x6a, 0xf5, 0xaf, 0xbf, 0xb3, 0xb2, 0xc1, 0xdb, 0xb3, 0xe9 };
-    for (unsigned int i = 0; i < sizeof(initSequence) / sizeof(initSequence[0]); i++) {
-        _dlcSerial.write(initSequence[i]);
+    for (int i : initSequence) {
+        _dlcSerial.write(i);
     }
     delay(300);
 }
 
 CommandData Honda3Pin::findCommand(Command cmd) {
-    for (unsigned int i = 0; sizeof(Commands) / sizeof(Commands[0]); i++) {
-        if (Commands[i].commandType == cmd) {
-            return Commands[i];
+    for (CommandData c : Commands) {
+        if (c.commandType == cmd) {
+            return c;
         }
     }
 }
@@ -58,8 +58,7 @@ int Honda3Pin::dlcCommand(Command cmd) {
   int i = 0;
   while (i < (TYPICAL_COMMAND_LENGTH + 3) && millis() < timeOut) {
     if (_dlcSerial.available()) {
-        _dlcdata[i] = _dlcSerial.read();
-        i++;
+        _dlcdata[i++] = _dlcSerial.read();
     }
   }
   if (_dlcdata[0] != 0x00 && _dlcdata[1] != (TYPICAL_COMMAND_LENGTH + 3)) {
