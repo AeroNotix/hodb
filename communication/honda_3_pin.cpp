@@ -35,6 +35,10 @@ CommandData Honda3Pin::findCommand(Command cmd) {
     }
 }
 
+byte checksum(CommandData cd) {
+    return (0xFF - (COMMAND_BYTE + TYPICAL_COMMAND_LENGTH + cd.address + cd.responseSize - 0x01));
+}
+
 int Honda3Pin::dlcCommand(Command cmd, byte data[]) {
 
   unsigned long timeOut = millis() + 250;
@@ -43,17 +47,13 @@ int Honda3Pin::dlcCommand(Command cmd, byte data[]) {
 
   _dlcSerial.listen();
   
-
   CommandData cd = findCommand(cmd);
   
-  // checksum FF - (cmd + num + loc + len - 0x01)
-  byte crc = (0xFF - (COMMAND_BYTE + TYPICAL_COMMAND_LENGTH + cd.address + cd.responseSize - 0x01));
-
   _dlcSerial.write(COMMAND_BYTE);  // header/cmd read memory ??
   _dlcSerial.write(TYPICAL_COMMAND_LENGTH);  // num of bytes to send, change this when necessary
   _dlcSerial.write(cd.address);  // address
   _dlcSerial.write(cd.responseSize);  // num of bytes to read
-  _dlcSerial.write(crc);  // checksum
+  _dlcSerial.write(checksum(cd));  // checksum
 
   int i = 0;
   while (i < (TYPICAL_COMMAND_LENGTH + 3) && millis() < timeOut) {
