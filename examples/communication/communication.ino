@@ -1,4 +1,4 @@
-#include "honda_3_pin.h"
+#include <hodb.h>
 
 Honda3Pin odb_connection(12, 2);
 

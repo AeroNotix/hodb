@@ -1,6 +1,6 @@
 #include "Arduino.h"
 #include <SoftwareSerialWithHalfDuplex.h>
-#include "honda_3_pin.h"
+#include "hodb.h"
 
 byte COMMAND_BYTE = 0x20;
 byte TYPICAL_COMMAND_LENGTH = 0x5;
