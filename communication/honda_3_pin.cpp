@@ -42,8 +42,8 @@ byte checksum(CommandData cd) {
 int Honda3Pin::dlcCommand(Command cmd) {
 
   unsigned long timeOut = millis() + 250;
-  // refactor the length arg to be known from data[]
-  memset(_dlcdata, 0, 20);
+
+  memset(_dlcdata, 0, sizeof(_dlcdata));
 
   _dlcSerial.listen();
   
