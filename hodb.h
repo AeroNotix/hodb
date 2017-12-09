@@ -7,7 +7,11 @@
 enum Command {
     RPM,
     ECT,
-    VSS
+    VSS,
+    IAT,
+    TPS,
+    TimingAdvance,
+    IACV,
 };
 
 struct CommandData {
@@ -23,11 +27,20 @@ public:
     Honda3Pin(uint8_t k_line_pin, uint8_t odb1_or_odb2);
     void Init();
     unsigned int RPM();
+    int ECT();
+    int VSS();
+    int IAT();
+    int TPS();
+    int TimingAdvance();
+    int IACV();
+    bool ResetECUErrorCodes();
+
 private:
-    bool dlcCommand(Command cmd);
+    bool ecuCommand(Command cmd);
     CommandData findCommand(Command cmd);
-    SoftwareSerialWithHalfDuplex _dlcSerial;
-    byte _dlcdata[20];
+    int basicCommand(Command cmd);
+    SoftwareSerialWithHalfDuplex _ecuSerial;
+    byte _ecudata[20];
     int _odb1_or_odb2;
 };
 
