@@ -4,6 +4,8 @@
 
 byte COMMAND_BYTE = 0x20;
 byte TYPICAL_COMMAND_LENGTH = 0x5;
+unsigned int DEFAULT_COMMAND_TIMEOUT_MS = 250;
+
 
 CommandData Commands[] = {
     {RPM, 0x00, 0x05, 0x02},
@@ -39,8 +41,8 @@ CommandData Honda3Pin::findCommand(Command cmd) {
     }
 }
 
-byte checksum(CommandData cd) {
-    return (0xFF - (COMMAND_BYTE + cd.requestSize + cd.address + cd.responseSize - 0x01));
+byte checksum(byte command_byte, byte send_length, byte address, byte read_length) {
+    return (0xFF - (command_byte + send_length + address + read_length - 0x01));
 }
 
 bool checksum_matches(byte data[20]) {
@@ -48,29 +50,40 @@ bool checksum_matches(byte data[20]) {
     return (0xFF - (data[0] + data[1] + data[2] + data[3] - 0x01)) == data[4];
 }
 
-bool Honda3Pin::ecuCommand(Command cmd) {
+bool Honda3Pin::ecuCommand(byte command_byte, byte send_length, byte address, byte read_length, unsigned int timeout) {
 
-  unsigned long timeOut = millis() + 250;
+  unsigned long timeOut = millis() + timeout;
 
   memset(_ecudata, 0, sizeof(_ecudata));
 
   _ecuSerial.listen();
-  
-  CommandData cd = findCommand(cmd);
-  
-  _ecuSerial.write(COMMAND_BYTE);
-  _ecuSerial.write(cd.requestSize);
-  _ecuSerial.write(cd.address);
-  _ecuSerial.write(cd.responseSize);
-  _ecuSerial.write(checksum(cd));
+
+  _ecuSerial.write(command_byte);
+  _ecuSerial.write(send_length);
+  _ecuSerial.write(address);
+  _ecuSerial.write(read_length);
+  _ecuSerial.write(checksum(command_byte, send_length, address, read_length));
 
   int i = 0;
-  while (i < cd.responseSize && millis() < timeOut) {
+  while (i < read_length && millis() < timeOut) {
     if (_ecuSerial.available()) {
         _ecudata[i++] = _ecuSerial.read();
     }
   }
   return checksum_matches(_ecudata);
+}
+
+bool Honda3Pin::ecuCommand(byte command_byte, byte send_length, byte address, byte read_length) {
+    return ecuCommand(command_byte, send_length, address, read_length, DEFAULT_COMMAND_TIMEOUT_MS);
+}
+
+bool Honda3Pin::ecuCommand(Command cmd, unsigned int timeout) {
+    CommandData cd = findCommand(cmd);
+    return ecuCommand(COMMAND_BYTE, cd.requestSize, cd.address, cd.responseSize);
+}
+
+bool Honda3Pin::ecuCommand(Command cmd) {
+    return ecuCommand(cmd, DEFAULT_COMMAND_TIMEOUT_MS);
 }
 
 int Honda3Pin::basicCommand(Command cmd) {

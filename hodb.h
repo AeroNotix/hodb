@@ -37,6 +37,9 @@ public:
 
 private:
     bool ecuCommand(Command cmd);
+    bool ecuCommand(Command cmd, unsigned int timeout);
+    bool ecuCommand(byte command_byte, byte send_length, byte address, byte read_length);
+    bool ecuCommand(byte command_byte, byte send_length, byte address, byte read_length, unsigned int timeout);
     CommandData findCommand(Command cmd);
     int basicCommand(Command cmd);
     SoftwareSerialWithHalfDuplex _ecuSerial;
