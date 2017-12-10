@@ -399,7 +399,7 @@ int Honda3Pin::basicCommand(Command cmd) {
 unsigned int Honda3Pin::RPM() {
     if (ecuCommand(Command::RPM)) {
         
-        if (_odb1_or_odb2 == 1) {
+        if (_odb1_or_odb2 == ODB1) {
             Serial.print("Raw data: ");
             for (int i = 0; i < 20; i++) {
                 Serial.print(_ecudata[i]);
@@ -409,8 +409,8 @@ unsigned int Honda3Pin::RPM() {
             return (1875000 / (_ecudata[2] * 256 + _ecudata[3] + 1)) * 4;
         }
         
-        if (_odb1_or_odb2 == 2) {
-            return (_ecudata[2] * 256) + _ecudata[3];
+        if (_odb1_or_odb2 == ODB2) {
+            return (_ecupacket[2] * 256) + _ecupacket[3];
         }
     }
     return -1;

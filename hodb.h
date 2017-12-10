@@ -25,6 +25,8 @@ struct CommandData {
 class Honda3Pin {
 public:
     Honda3Pin(uint8_t k_line_pin, uint8_t odb1_or_odb2);
+    static const int ODB1 = 1;
+    static const int ODB2 = 2;
     void Init();
     unsigned int RPM();
     int ECT();
