@@ -45,7 +45,7 @@ private:
     CommandData findCommand(Command cmd);
     int basicCommand(Command cmd);
     SoftwareSerialWithHalfDuplex _ecuSerial;
-    byte _ecudata[20];
+    byte _ecupacket[20];
     int _odb1_or_odb2;
 };
 

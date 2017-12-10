@@ -47,7 +47,12 @@ byte checksum(byte command_byte, byte send_length, byte address, byte read_lengt
 
 bool checksum_matches(byte packet[20]) {
     // this only works for RPM right now.
-    return (0xFF - (data[0] + data[1] + data[2] + data[3] - 0x01)) == data[4];
+    byte length = packet[1];
+    int command_response_checksum = 0;
+    for (int i = ECU_RESPONSE_HEADER_SIZE; i < length; i++) {
+        command_response_checksum += packet[i];
+    }
+    return (0xFF - (packet[0] + packet[1] + command_response_checksum - 0x01)) == packet[length+ECU_RESPONSE_HEADER_SIZE];
 }
 
 bool Honda3Pin::ecuCommand(byte command_byte, byte send_length, byte address, byte read_length, unsigned int timeout) {
