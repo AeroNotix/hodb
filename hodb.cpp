@@ -5,7 +5,7 @@
 byte COMMAND_BYTE = 0x20;
 byte TYPICAL_COMMAND_LENGTH = 0x5;
 unsigned int DEFAULT_COMMAND_TIMEOUT_MS = 250;
-
+unsigned int ECU_RESPONSE_HEADER_SIZE = 2;
 
 CommandData Commands[] = {
     {RPM, 0x00, 0x05, 0x02},
@@ -19,7 +19,7 @@ CommandData Commands[] = {
 
 Honda3Pin::Honda3Pin(uint8_t k_line_pin, uint8_t odb1_or_odb2) :
     _ecuSerial(k_line_pin, k_line_pin, false, false),
-    _ecudata{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    _ecupacket{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 {
     _odb1_or_odb2 = odb1_or_odb2;
 }
@@ -45,7 +45,7 @@ byte checksum(byte command_byte, byte send_length, byte address, byte read_lengt
     return (0xFF - (command_byte + send_length + address + read_length - 0x01));
 }
 
-bool checksum_matches(byte data[20]) {
+bool checksum_matches(byte packet[20]) {
     // this only works for RPM right now.
     return (0xFF - (data[0] + data[1] + data[2] + data[3] - 0x01)) == data[4];
 }
@@ -54,7 +54,7 @@ bool Honda3Pin::ecuCommand(byte command_byte, byte send_length, byte address, by
 
   unsigned long timeOut = millis() + timeout;
 
-  memset(_ecudata, 0, sizeof(_ecudata));
+  memset(_ecupacket, 0, sizeof(_ecupacket));
 
   _ecuSerial.listen();
 
@@ -67,10 +67,10 @@ bool Honda3Pin::ecuCommand(byte command_byte, byte send_length, byte address, by
   int i = 0;
   while (i < read_length && millis() < timeOut) {
     if (_ecuSerial.available()) {
-        _ecudata[i++] = _ecuSerial.read();
+        _ecupacket[i++] = _ecuSerial.read();
     }
   }
-  return checksum_matches(_ecudata);
+  return checksum_matches(_ecupacket);
 }
 
 bool Honda3Pin::ecuCommand(byte command_byte, byte send_length, byte address, byte read_length) {
@@ -88,7 +88,7 @@ bool Honda3Pin::ecuCommand(Command cmd) {
 
 int Honda3Pin::basicCommand(Command cmd) {
     if (ecuCommand(cmd)) {
-        return _ecudata[2];
+        return _ecupacket[2];
     } else {
         return -1;
     }
@@ -402,11 +402,11 @@ unsigned int Honda3Pin::RPM() {
         if (_odb1_or_odb2 == ODB1) {
             Serial.print("Raw data: ");
             for (int i = 0; i < 20; i++) {
-                Serial.print(_ecudata[i]);
+                Serial.print(_ecupacket[i]);
                 Serial.print(" ");
                 Serial.println("");
             } 
-            return (1875000 / (_ecudata[2] * 256 + _ecudata[3] + 1)) * 4;
+            return (1875000 / (_ecupacket[2] * 256 + _ecupacket[3] + 1)) * 4;
         }
         
         if (_odb1_or_odb2 == ODB2) {
